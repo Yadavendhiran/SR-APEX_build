@@ -26,15 +26,15 @@ class DIVLOAD(Dataset):
         images=Image.open(
             os.path.join(self.image_p,self.all_images[index])
         ).convert("RGB")
-        image_c=transforms.CenterCrop((400,400))
+        image_c=transforms.CenterCrop((1920,1080))
         image_cropped=image_c(images)
-        tensor_image=self.transform(image_cropped)
+        tensor_image=self.transform(image_cropped).to(device)
 
         return tensor_image
 
 image_path=r"D:\yt\collegeProj\dataset img\Dataset\DIV2K_train_HR"
 dataset=DIVLOAD(image_path=image_path)
-dataload=DataLoader(dataset,batch_size=4,shuffle=True,pin_memory=(device.type=="cuda"),num_workers=0)
+dataload=DataLoader(dataset,batch_size=4,shuffle=True,num_workers=0)
 
 class feature(nn.Module):
     def __init__(self):
