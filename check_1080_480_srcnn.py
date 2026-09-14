@@ -3,42 +3,11 @@ import torch.nn as nn
 from torchvision import transforms
 import cv2
 import numpy as np
+from srcnn_480_720 import SRCNN
 
 device="cuda"
 
-class SRCNN(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.encoder=nn.Sequential(
-            # layer 1
-            nn.Conv2d(in_channels=3,out_channels=32,kernel_size=3,stride=1,padding=1),
-            nn.ReLU(inplace=True),
 
-            # layer 2
-            nn.Conv2d(in_channels=32,out_channels=64,kernel_size=3,stride=1,padding=1),
-            nn.ReLU(inplace=True),
-
-            # layer 3
-            nn.Conv2d(in_channels=64,out_channels=64,kernel_size=3,stride=1,padding=1),
-            nn.ReLU(inplace=True),
-
-            # layer 4
-            nn.Conv2d(in_channels=64,out_channels=32,kernel_size=3,stride=1,padding=1),
-            nn.ReLU(inplace=True),
-
-            # layer 5
-            nn.Conv2d(in_channels=32,out_channels=16,kernel_size=3,stride=1,padding=1),
-            nn.ReLU(inplace=True),
-
-            nn.Upsample(size=(720,1280),mode="bilinear",align_corners=False),
-            # layer 6
-            nn.Conv2d(in_channels=16,out_channels=3,kernel_size=3,stride=1,padding=1),
-        )
-
-    def forward(self,x):
-        x=self.encoder(x)
-        return x
-    
 test_image=cv2.imread(r"D:\yt\collegeProj\dataset video\test_480_sharp\1.1.png") # same as compare image
 compare_image=cv2.imread(r"D:\yt\collegeProj\dataset video\val\val_sharp\000\00000000.png")
 
@@ -52,7 +21,7 @@ tensor_compare_image=transform(compare_image)
 tensor_compare_image=tensor_compare_image.unsqueeze(0)
 
 model=SRCNN()
-model.load_state_dict(torch.load(r"SRCNN_1.5X.pth",map_location=device))
+model.load_state_dict(torch.load(r"SRCNN_1.5X_v0.pth",map_location=device))
 model.eval()
 criteon=nn.MSELoss()
 with torch.no_grad():
