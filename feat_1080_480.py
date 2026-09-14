@@ -4,6 +4,9 @@ import cv2
 import os
 from torchvision import transforms
 import torch.nn as nn
+from srcnn_480_720 import SRCNN
+import matplotlib.pyplot as plt
+import numpy as np
 
 folder_1080_path=r"D:\yt\collegeProj\dataset video\train_sharp\train\train_sharp"
 folder_480_path=r"D:\yt\collegeProj\dataset video\train_480_sharp"
@@ -45,38 +48,6 @@ class ImageLoader(Dataset):
         return lr_480_tensor,hr_1080_tensor
 
 # 1.5x SRCNN 
-class SRCNN(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.encoder=nn.Sequential(
-            # layer 1
-            nn.Conv2d(in_channels=3,out_channels=32,kernel_size=3,stride=1,padding=1),
-            nn.ReLU(inplace=True),
-
-            # layer 2
-            nn.Conv2d(in_channels=32,out_channels=64,kernel_size=3,stride=1,padding=1),
-            nn.ReLU(inplace=True),
-
-            # layer 3
-            nn.Conv2d(in_channels=64,out_channels=64,kernel_size=3,stride=1,padding=1),
-            nn.ReLU(inplace=True),
-
-            # layer 4
-            nn.Conv2d(in_channels=64,out_channels=32,kernel_size=3,stride=1,padding=1),
-            nn.ReLU(inplace=True),
-
-            # layer 5
-            nn.Conv2d(in_channels=32,out_channels=16,kernel_size=3,stride=1,padding=1),
-            nn.ReLU(inplace=True),
-
-            nn.Upsample(size=(720,1280),mode="bilinear",align_corners=False),
-            # layer 6
-            nn.Conv2d(in_channels=16,out_channels=3,kernel_size=3,stride=1,padding=1),
-        )
-
-    def forward(self,x):
-        x=self.encoder(x)
-        return x
 
 model=SRCNN().to(device)
 crierion=nn.MSELoss()
@@ -85,6 +56,8 @@ optim=torch.optim.Adam(
     lr=1e-3
 )
 epchos=2
+avg_epchho_loss=[]
+avg_file_loss=[]
 for i in range(epchos):
     total_loss_epcho=0
     average_loss_epcho=0
@@ -104,7 +77,19 @@ for i in range(epchos):
             total_loss_file+=loss.item()
             total_loss_epcho+=loss.item()
         average_loss_file=total_loss_file/len(dataset)
+        avg_file_loss.append(average_loss_file)
         print("PROCESSED FILE:",key,"Epcho:",i+1,"average loss:",average_loss_file)
     print("Epcho:",i+1,"average epcho loss:",(total_loss_epcho/(11*len(dataset))))
+    avg_epchho_loss.append(total_loss_epcho/(11*len(dataset)))
 
-torch.save(model.state_dict(),"SRCNN_1.5X.pth")
+x=avg_file_loss
+print(len(x))
+y=list(range(1,23))
+
+plt.plot(x,y)
+plt.xlabel("loss of folder")
+plt.ylabel("No of folder")
+plt.show()
+
+
+torch.save(model.state_dict(),"SRCNN_1.5X_v0.pth")
