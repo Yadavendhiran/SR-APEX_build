@@ -15,7 +15,7 @@ print("Using device:", device)
 
 image_1=Image.open(r"D:\yt\collegeProj\dataset img\Dataset\DIV2K_valid_HR\0801.png").convert("RGB")
 
-image_2=Image.open(r"D:\yt\collegeProj\dataset img\Dataset\DIV2K_train_HR\0014.png").convert("RGB")
+image_2=Image.open(r"D:\yt\collegeProj\dataset img\Dataset\DIV2K_valid_HR\0824.png").convert("RGB")
 
 # crop image
 crop_image=transforms.CenterCrop((400,400))
