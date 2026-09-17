@@ -9,13 +9,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 folder_1080_path=r"D:\yt\collegeProj\dataset video\train_sharp\train\train_sharp"
-folder_480_path=r"D:\yt\collegeProj\dataset video\train_480_sharp"
+folder_480_path=r"D:\yt\collegeProj\dataset video\train_sharp_bicubic\train\train_sharp_bicubic\X4"
 
 folder_1080=sorted(os.listdir(folder_1080_path))
 folder_480=sorted(os.listdir(folder_480_path))
 file_pair={}
 
-for i in range(12):
+for i in range(11):
     file_pair[folder_1080[i]]=folder_480[i]
 
 print((file_pair))
@@ -91,7 +91,7 @@ optim=torch.optim.Adam(
     lr=1e-3
 )
 edge_weight=0.1
-epchos=3
+epchos=10
 avg_epchho_loss=[]
 avg_file_loss=[]
 total_file=0
@@ -143,4 +143,4 @@ plt.ylabel("No of folder")
 plt.show()
 
 
-torch.save(model.state_dict(),"SRCNN_1.5X_v2.pth")
+torch.save(model.state_dict(),"SRCNN_4X_v0.3.pth")
