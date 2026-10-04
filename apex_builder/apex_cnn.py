@@ -20,6 +20,7 @@ file_pair={}
 for i in range(len(folder_480)):
     file_pair[folder_1080[i]]=folder_480[i]
 
+print(file_pair)
 trans=transforms.ToTensor()
 device="cuda" if torch.cuda.is_available() else "cpu"
 
@@ -116,7 +117,10 @@ class APEX_SR(nn.Module):
         self.three_channel=nn.Conv2d(in_channels=8,out_channels=3,kernel_size=3,padding=1,stride=1)
 
         # enhancement layer
-        self.enhancement = nn.Conv2d(16, 8, 3, padding=1)
+        self.enhancement = nn.Conv2d(16, 32, 3, padding=1)
+        self.relu4=nn.ReLU(inplace=True)
+        self.enhancement_1=nn.Conv2d(32,16,3,padding=1)
+        self.enhace_to_out=nn.Conv2d(16,3,3,padding=1)
 
     def forward(self,x):
         # layer 1 process sobel + gradient
@@ -156,9 +160,14 @@ class APEX_SR(nn.Module):
         # concat 
         feature_16=torch.cat([layer_cont_cat_input,layer_noise_cat_input],dim=1)
 
+        base=self.upscale(x)
         up=self.upscale(feature_16)
         enhace=self.enhancement(up)
-        out_put=self.three_channel(enhace)
+        enhace=self.relu4(enhace)
+        enhace=self.enhancement_1(enhace)
+        residual=self.enhace_to_out(enhace)
+        out_put=base+residual
+
         return out_put
 
 class ImageLoader(Dataset):
@@ -194,7 +203,7 @@ optim=torch.optim.Adam(
     lr=1e-3
 )
 edge_weight=0.1
-epchos=10
+epchos=5
 avg_epchho_loss=[]
 avg_file_loss=[]
 total_file=0
@@ -206,8 +215,11 @@ for i in range(epchos):
     for key,value in file_pair.items():
         total_loss_file=0
         average_loss_file=0
+        sobel_loss=0
+        mse_loss=0
         data=ImageLoader(key,folder_1080_path,value,folder_480_path)
         dataset=DataLoader(data,batch_size=4,shuffle=True,num_workers=0)
+        current_file=0
         for lr_480,hr_1080 in dataset:
             lr_480=lr_480.to(device,non_blocking=True)
             hr_1080=hr_1080.to(device,non_blocking=True)
@@ -215,20 +227,22 @@ for i in range(epchos):
 
             edge_loss_value=edge_loss(predicted_hr,hr_1080)
             total_sobel_loss+=edge_loss_value.item()
+            sobel_loss+=edge_loss_value.item()
             loss=crierion(predicted_hr,hr_1080)
             total_mse_loss+=loss.item()
+            mse_loss+=loss.item()
             total_loss=loss+(edge_weight*edge_loss_value)
             optim.zero_grad()
             total_loss.backward()
             optim.step()
+            current_file+=1
 
             total_loss_file+=total_loss.item()
             total_loss_epcho+=total_loss.item()
 
-
-        average_loss_file=total_loss_file/len(dataset)
-        average_mse_loss=total_mse_loss/len(dataset)
-        average_sobel_loss=total_sobel_loss/len(dataset)
+        average_loss_file=total_loss_file/current_file
+        average_mse_loss=mse_loss/current_file
+        average_sobel_loss=sobel_loss/current_file
 
         avg_file_loss.append(average_loss_file)
         total_file+=1
@@ -247,4 +261,4 @@ plt.ylabel("No of folder")
 plt.show()
 
 
-torch.save(model.state_dict(),"APEX_SRCNN_V0.0.pth")
+torch.save(model.state_dict(),"APEX_SRCNN_V2.1.pth")
