@@ -69,7 +69,10 @@ class APEX_SR(nn.Module):
         self.three_channel=nn.Conv2d(in_channels=8,out_channels=3,kernel_size=3,padding=1,stride=1)
 
         # enhancement layer
-        self.enhancement = nn.Conv2d(16, 8, 3, padding=1)
+        self.enhancement = nn.Conv2d(16, 32, 3, padding=1)
+        self.relu4=nn.ReLU(inplace=True)
+        self.enhancement_1=nn.Conv2d(32,16,3,padding=1)
+        self.enhace_to_out=nn.Conv2d(16,3,3,padding=1)
 
     def forward(self,x):
         # layer 1 process sobel + gradient
@@ -109,7 +112,12 @@ class APEX_SR(nn.Module):
         # concat 
         feature_16=torch.cat([layer_cont_cat_input,layer_noise_cat_input],dim=1)
 
+        base=self.upscale(x)
         up=self.upscale(feature_16)
         enhace=self.enhancement(up)
-        out_put=self.three_channel(enhace)
+        enhace=self.relu4(enhace)
+        enhace=self.enhancement_1(enhace)
+        residual=self.enhace_to_out(enhace)
+        out_put=base+residual
+
         return out_put
