@@ -10,8 +10,10 @@ from contrast_expert import contrast_experts
 from noise_expert import noise_experts
 import matplotlib.pyplot as plt
 
-folder_1080_path=r"D:\yt\collegeProj\dataset video\train_sharp\train\train_sharp"
-folder_480_path=r"D:\yt\collegeProj\dataset video\train_480_sharp"
+# for version V3 480->1080
+
+folder_1080_path=r"E:\train 1080"
+folder_480_path=r"E:\train 480"
 
 folder_1080=sorted(os.listdir(folder_1080_path))
 folder_480=sorted(os.listdir(folder_480_path))
@@ -111,7 +113,7 @@ class APEX_SR(nn.Module):
         self.noise_dig_hori=nn.Parameter(torch.tensor(noise_digonal_horizontal,dtype=torch.float32).view(1,1,3,3).repeat(1, 3, 1, 1),requires_grad=True)
 
         # layer upscaling
-        self.upscale=nn.Upsample(size=(720,1280),mode="bilinear",align_corners=False)
+        self.upscale=nn.Upsample(size=(1080,1920),mode="bilinear",align_corners=False)
 
         # layer convert to 3 outchannel
         self.three_channel=nn.Conv2d(in_channels=8,out_channels=3,kernel_size=3,padding=1,stride=1)
@@ -250,6 +252,9 @@ for i in range(epchos):
     print("Epcho:",i+1,"average epcho mse loss:",(total_mse_loss/(len(file_pair)*len(dataset))),"average epchos sobel loss:",(total_sobel_loss/(len(file_pair)*len(dataset))))
     avg_epchho_loss.append(total_loss_epcho/(11*len(dataset)))
 
+
+torch.save(model.state_dict(),"APEX_SRCNN_V3.pth")
+
 x=avg_file_loss
 # print(len(x))
 y=list(range(1,total_file+1))
@@ -259,6 +264,3 @@ plt.plot(x,y)
 plt.xlabel("loss of folder")
 plt.ylabel("No of folder")
 plt.show()
-
-
-torch.save(model.state_dict(),"APEX_SRCNN_V2.1.pth")
