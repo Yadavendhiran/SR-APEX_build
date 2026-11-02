@@ -63,7 +63,7 @@ class APEX_SR(nn.Module):
         self.noise_dig_hori=nn.Parameter(torch.tensor(noise_digonal_horizontal,dtype=torch.float32).view(1,1,3,3).repeat(1, 3, 1, 1),requires_grad=True)
 
         # layer upscaling
-        self.upscale=nn.Upsample(size=(720,1280),mode="bilinear",align_corners=False)
+        self.upscale=nn.Upsample(size=(1080,1920),mode="bilinear",align_corners=False)
 
         # layer convert to 3 outchannel
         self.three_channel=nn.Conv2d(in_channels=8,out_channels=3,kernel_size=3,padding=1,stride=1)
